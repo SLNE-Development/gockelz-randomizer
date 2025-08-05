@@ -2,7 +2,6 @@ package dev.slne.gockelz
 
 import com.github.shynixn.mccoroutine.folia.entityDispatcher
 import com.github.shynixn.mccoroutine.folia.launch
-import com.github.shynixn.mccoroutine.folia.ticks
 import dev.slne.surf.surfapi.bukkit.api.extensions.server
 import dev.slne.surf.surfapi.core.api.messages.Colors
 import dev.slne.surf.surfapi.core.api.messages.CommonComponents
@@ -10,19 +9,29 @@ import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import dev.slne.surf.surfapi.core.api.messages.adventure.playSound
 import dev.slne.surf.surfapi.core.api.messages.adventure.sendText
 import dev.slne.surf.surfapi.core.api.messages.adventure.showTitle
+import dev.slne.surf.surfapi.core.api.util.freeze
 import dev.slne.surf.surfapi.core.api.util.mutableObjectSetOf
+import dev.slne.surf.surfapi.core.api.util.random
+import dev.slne.surf.surfapi.core.api.util.toObjectSet
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
+import org.bukkit.Material
 import org.bukkit.Sound
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
 import java.util.*
+import kotlin.random.asKotlinRandom
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 object RandomizerManager {
+
+    private val items = Material.entries.filter {
+        it != Material.AIR && it.isItem
+    }.map { ItemStack(it) }.toObjectSet()
 
     private val notifyAt = mutableObjectSetOf(
         90.minutes,
@@ -56,7 +65,7 @@ object RandomizerManager {
                             CommonComponents.formatTime(
                                 seconds.seconds,
                                 showSeconds = true,
-                                shortForms = false,
+                                shortForms = true,
                                 separator = buildText {
                                     variableValue(":")
                                 },
@@ -127,7 +136,8 @@ object RandomizerManager {
         }
     }
 
-    val players = mutableObjectSetOf<UUID>()
+    private val _players = mutableObjectSetOf<UUID>()
+    val players = _players.freeze()
 
     var randomizerTaskSeconds = 0
     var randomizerTask: Job? = null
@@ -138,16 +148,16 @@ object RandomizerManager {
         timeBetweenRandoms: Int,
         delayToFirstRandom: Int?
     ) {
-        this.players.clear()
-        this.players.addAll(players.map { it.uniqueId })
+        this._players.clear()
+        this._players.addAll(players.map { it.uniqueId })
 
         if (randomizerTask != null) error("Randomizer task is already running!")
 
-        randomizerTaskSeconds = timeout * 20
+        randomizerTaskSeconds = timeout
 
         randomizerTask = plugin.launch {
             if (delayToFirstRandom != null) {
-                delay(delayToFirstRandom.ticks)
+                delay(delayToFirstRandom.seconds)
             }
 
             notifyStart()
@@ -155,11 +165,22 @@ object RandomizerManager {
             while (isActive && randomizerTaskSeconds > 0) {
                 notifyIfApplicable(randomizerTaskSeconds)
 
+                players.forEach { player ->
+                    if (!player.isOnline) {
+                        _players.remove(player.uniqueId)
+                        return@forEach
+                    }
+
+                    withContext(plugin.entityDispatcher(player)) {
+                        player.inventory.addItem(items.random(random.asKotlinRandom()))
+                    }
+                }
+
                 randomizerTaskSeconds--
-                delay(timeBetweenRandoms.ticks)
+                delay(timeBetweenRandoms.seconds)
             }
 
-            notifyEnd()
+            stop()
         }
     }
 
@@ -171,7 +192,7 @@ object RandomizerManager {
 
         notifyEnd()
 
-        players.clear()
+        _players.clear()
     }
 
     fun isRunning() = randomizerTask != null && randomizerTask?.isActive == true

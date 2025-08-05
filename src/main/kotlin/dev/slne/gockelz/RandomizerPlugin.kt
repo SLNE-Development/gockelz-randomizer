@@ -8,8 +8,11 @@ import org.bukkit.plugin.java.JavaPlugin
 val plugin get() = JavaPlugin.getPlugin(RandomizerPlugin::class.java)
 
 class RandomizerPlugin : SuspendingJavaPlugin() {
-    
+
     override suspend fun onEnableAsync() {
+        // Initialize the material list, like wth?
+        RandomizerManager
+
         ListenerManager.register()
         randomizerCommand()
     }

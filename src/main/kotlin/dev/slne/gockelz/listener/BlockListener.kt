@@ -15,9 +15,11 @@ object BlockListener : Listener {
 
     @EventHandler
     fun onBlockPlace(event: BlockPlaceEvent) {
-        checkGameIsRunning(event) {
+        val player = event.player
+        
+        checkGameIsRunning(player, event) {
             checkAndCancelAboveSpawnpoint(event) {
-                checkInOwnLine(event, event.player, event) {
+                checkInOwnLine(event, player, event) {
                     checkOnCorrectY(event) {
                         checkPlacingInPositiveX(event) {
 
@@ -30,15 +32,23 @@ object BlockListener : Listener {
 
     @EventHandler
     fun onBlockBreak(event: BlockBreakEvent) {
-        checkGameIsRunning(event) {
-            checkInOwnLine(event, event.player, event) {
+        val player = event.player
+
+        checkGameIsRunning(player, event) {
+            checkInOwnLine(event, player, event) {
 
             }
         }
     }
 
-    private fun checkGameIsRunning(cancellable: Cancellable, next: () -> Unit) {
+    private fun checkGameIsRunning(player: Player, cancellable: Cancellable, next: () -> Unit) {
         if (!RandomizerManager.isRunning()) {
+            player.sendText {
+                appendPrefix()
+
+                error("Das Spiel läuft nicht! Du kannst keine Blöcke abbauen oder platzieren.")
+            }
+
             cancellable.isCancelled = true
             return
         }

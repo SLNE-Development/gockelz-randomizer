@@ -17,9 +17,9 @@ fun CommandAPICommand.randomizerStartCommand() = subcommand("start") {
     withPermission(PermissionRegistry.COMMAND_START)
 
     entitySelectorArgumentManyPlayers("players")
-    timeArgument("timeout")
-    timeArgument("timeBetweenRandoms")
-    timeArgument("delayToFirstRandom", true)
+    integerArgument("timeout", min = 1)
+    integerArgument("timeBetweenRandoms", min = 1)
+    integerArgument("delayToFirstRandom", min = 0, optional = true)
 
     playerExecutor { player, arguments ->
         val players: List<Player> by arguments
