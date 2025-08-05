@@ -34,8 +34,7 @@ object OnlineListener : Listener {
             return
         }
 
-        event.respawnLocation = respawn
+        player.teleportAsync(respawn)
     }
-
 
 }
