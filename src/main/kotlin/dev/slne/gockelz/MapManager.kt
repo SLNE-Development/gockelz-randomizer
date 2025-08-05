@@ -20,7 +20,7 @@ object MapManager {
     private val playerXKey = NamespacedKey("gockelz", "player_x")
     private val playerZKey = NamespacedKey("gockelz", "player_z")
 
-    private fun getPlayerSpawnLocation(player: Player): Location? {
+    fun getPlayerSpawnLocation(player: Player): Location? {
         val pdc = player.persistentDataContainer
         val x = pdc.get(playerXKey, PersistentDataType.INTEGER)
         val z = pdc.get(playerZKey, PersistentDataType.INTEGER)
@@ -59,7 +59,7 @@ object MapManager {
         val block = world.getBlockAt(0, RANDOMIZER_Y, spawnZ)
         block.type = Material.BEDROCK
 
-        val respawn = block.location.clone().add(0.0, 1.0, 0.0)
+        val respawn = block.location.clone().add(0.5, 1.0, 0.5)
         player.respawnLocation = respawn
         setSpawnLocation(player, respawn)
 
