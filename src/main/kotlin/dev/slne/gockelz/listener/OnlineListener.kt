@@ -15,7 +15,10 @@ object OnlineListener : Listener {
         val (hadSpawn, location) = MapManager.prepareSpawnpoint(player)
 
         if (!hadSpawn) {
-            player.teleportAsync(location.clone().add(0.5, 2.0, 0.5))
+            val spawnLocation = location.clone().add(0.5, 2.0, 0.5)
+            spawnLocation.yaw = 90f
+
+            player.teleportAsync(spawnLocation)
         }
     }
 
@@ -33,8 +36,11 @@ object OnlineListener : Listener {
 
             return
         }
+        
+        val spawnLocation = respawn.clone().add(0.5, 2.0, 0.5)
+        spawnLocation.yaw = 90f
 
-        player.teleportAsync(respawn.clone().add(0.5, 2.0, 0.5))
+        player.teleportAsync(spawnLocation)
     }
 
 }
