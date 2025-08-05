@@ -110,7 +110,7 @@ object RandomizerManager {
         }
     }
 
-    private fun notifyEnd() = plugin.launch {
+    private fun notifyEnd(after: () -> Unit) = plugin.launch {
         players.mapNotNull { server.getPlayer(it) }.forEach { player ->
             withContext(plugin.entityDispatcher(player)) {
                 player.showTitle {
@@ -134,6 +134,8 @@ object RandomizerManager {
                 }
             }
         }
+
+        after()
     }
 
     private val _players = mutableObjectSetOf<UUID>()
@@ -146,7 +148,8 @@ object RandomizerManager {
         players: Collection<Player>,
         timeout: Int,
         timeBetweenRandoms: Int,
-        delayToFirstRandom: Int?
+        delayToFirstRandom: Int?,
+        spawnAtBedrock: Boolean = false
     ) {
         this._players.clear()
         this._players.addAll(players.map { it.uniqueId })
@@ -172,7 +175,23 @@ object RandomizerManager {
                     }
 
                     withContext(plugin.entityDispatcher(player)) {
-                        player.inventory.addItem(items.random(random.asKotlinRandom()))
+                        val item = items.random(random.asKotlinRandom())
+
+                        if (spawnAtBedrock) {
+                            val spawnLocation = MapManager.getPlayerSpawnLocation(player)
+
+                            if (spawnLocation == null) {
+                                player.inventory.addItem(item)
+                                return@withContext
+                            }
+
+                            spawnLocation.world.dropItem(
+                                spawnLocation.clone().add(0.0, 2.0, 0.0),
+                                item
+                            )
+                        } else {
+                            player.inventory.addItem(item)
+                        }
                     }
                 }
 
@@ -190,9 +209,9 @@ object RandomizerManager {
         randomizerTask?.cancel()
         randomizerTask = null
 
-        notifyEnd()
-
-        _players.clear()
+        notifyEnd {
+            _players.clear()
+        }
     }
 
     fun isRunning() = randomizerTask != null && randomizerTask?.isActive == true

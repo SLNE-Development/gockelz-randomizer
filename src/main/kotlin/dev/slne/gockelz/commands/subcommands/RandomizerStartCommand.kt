@@ -20,12 +20,14 @@ fun CommandAPICommand.randomizerStartCommand() = subcommand("start") {
     integerArgument("timeout", min = 1)
     integerArgument("timeBetweenRandoms", min = 1)
     integerArgument("delayToFirstRandom", min = 0, optional = true)
+    booleanArgument("spawnAtBedrock", optional = true)
 
     playerExecutor { player, arguments ->
         val players: List<Player> by arguments
         val timeout: Int by arguments
         val timeBetweenRandoms: Int by arguments
         val delayToFirstRandom: Int? by arguments
+        val spawnAtBedrock: Boolean by arguments
 
         plugin.launch {
             if (RandomizerManager.randomizerTask != null) {
@@ -46,7 +48,13 @@ fun CommandAPICommand.randomizerStartCommand() = subcommand("start") {
                 return@launch
             }
 
-            RandomizerManager.start(players, timeout, timeBetweenRandoms, delayToFirstRandom)
+            RandomizerManager.start(
+                players,
+                timeout,
+                timeBetweenRandoms,
+                delayToFirstRandom,
+                spawnAtBedrock
+            )
 
             player.sendText {
                 appendPrefix()

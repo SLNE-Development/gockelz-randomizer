@@ -15,7 +15,7 @@ object OnlineListener : Listener {
         val (hadSpawn, location) = MapManager.prepareSpawnpoint(player)
 
         if (!hadSpawn) {
-            player.teleportAsync(location)
+            player.teleportAsync(location.clone().add(0.5, 2.0, 0.5))
         }
     }
 
@@ -34,7 +34,7 @@ object OnlineListener : Listener {
             return
         }
 
-        player.teleportAsync(respawn)
+        player.teleportAsync(respawn.clone().add(0.5, 2.0, 0.5))
     }
 
 }
