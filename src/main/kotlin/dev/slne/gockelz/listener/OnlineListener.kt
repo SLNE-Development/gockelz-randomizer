@@ -9,7 +9,12 @@ object OnlineListener : Listener {
 
     @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent) {
-        MapManager.prepareSpawnpoint(event.player)
+        val player = event.player
+        val (hadSpawn, location) = MapManager.prepareSpawnpoint(player)
+
+        if (!hadSpawn) {
+            player.teleportAsync(location)
+        }
     }
 
 }

@@ -1,6 +1,7 @@
 package dev.slne.gockelz.listener
 
 import dev.slne.gockelz.MapManager
+import dev.slne.gockelz.RandomizerManager
 import dev.slne.surf.surfapi.core.api.messages.adventure.sendText
 import org.bukkit.entity.Player
 import org.bukkit.event.Cancellable
@@ -14,18 +15,38 @@ object BlockListener : Listener {
 
     @EventHandler
     fun onBlockPlace(event: BlockPlaceEvent) {
-        checkAndCancelAboveSpawnpoint(event)
-        checkInOwnLine(event, event.player, event)
-        checkOnCorrectY(event)
-        checkPlacingInPositiveX(event)
+        checkGameIsRunning(event) {
+            checkAndCancelAboveSpawnpoint(event) {
+                checkInOwnLine(event, event.player, event) {
+                    checkOnCorrectY(event) {
+                        checkPlacingInPositiveX(event) {
+
+                        }
+                    }
+                }
+            }
+        }
     }
 
     @EventHandler
     fun onBlockBreak(event: BlockBreakEvent) {
-        checkInOwnLine(event, event.player, event)
+        checkGameIsRunning(event) {
+            checkInOwnLine(event, event.player, event) {
+
+            }
+        }
     }
 
-    private fun checkPlacingInPositiveX(event: BlockPlaceEvent) {
+    private fun checkGameIsRunning(cancellable: Cancellable, next: () -> Unit) {
+        if (!RandomizerManager.isRunning()) {
+            cancellable.isCancelled = true
+            return
+        }
+
+        next()
+    }
+
+    private fun checkPlacingInPositiveX(event: BlockPlaceEvent, next: () -> Unit) {
         val player = event.player
         val blockX = event.blockPlaced.x
 
@@ -37,10 +58,14 @@ object BlockListener : Listener {
 
                 error("Du kannst Blöcke nur in der positiven X-Richtung platzieren!")
             }
+
+            return
         }
+
+        next()
     }
 
-    private fun checkOnCorrectY(event: BlockPlaceEvent) {
+    private fun checkOnCorrectY(event: BlockPlaceEvent, next: () -> Unit) {
         val player = event.player
         val blockY = event.blockPlaced.y
 
@@ -54,10 +79,19 @@ object BlockListener : Listener {
                 variableValue(MapManager.RANDOMIZER_Y)
                 error(" platzieren!")
             }
+
+            return
         }
+
+        next()
     }
 
-    private fun checkInOwnLine(event: BlockEvent, player: Player, cancellable: Cancellable) {
+    private fun checkInOwnLine(
+        event: BlockEvent,
+        player: Player,
+        cancellable: Cancellable,
+        next: () -> Unit
+    ) {
         val spawnPoint = player.respawnLocation ?: return
 
         val blockX = event.block.x
@@ -71,10 +105,14 @@ object BlockListener : Listener {
 
                 error("Du kannst keine Blöcke außerhalb deiner eigenen Linie platzieren oder abbauen!")
             }
+
+            return
         }
+
+        next()
     }
 
-    private fun checkAndCancelAboveSpawnpoint(event: BlockPlaceEvent) {
+    private fun checkAndCancelAboveSpawnpoint(event: BlockPlaceEvent, next: () -> Unit) {
         val player = event.player
         val spawnPoint = player.respawnLocation ?: return
 
@@ -92,7 +130,11 @@ object BlockListener : Listener {
 
                 error("Du kannst keine Blöcke direkt über deinem Spawnpunkt platzieren!")
             }
+
+            return
         }
+
+        next()
     }
 
 }

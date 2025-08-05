@@ -174,4 +174,6 @@ object RandomizerManager {
         players.clear()
     }
 
+    fun isRunning() = randomizerTask != null && randomizerTask?.isActive == true
+
 }
