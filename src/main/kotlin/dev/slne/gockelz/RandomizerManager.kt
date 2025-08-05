@@ -21,6 +21,7 @@ import org.bukkit.Material
 import org.bukkit.Sound
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
+import org.bukkit.util.Vector
 import java.util.*
 import kotlin.random.asKotlinRandom
 import kotlin.time.Duration.Companion.milliseconds
@@ -186,9 +187,11 @@ object RandomizerManager {
                             }
 
                             spawnLocation.world.dropItem(
-                                spawnLocation.clone().add(0.0, 2.0, 0.0),
+                                spawnLocation.clone().add(0.5, 1.0, 0.5),
                                 item
-                            )
+                            ) { entity ->
+                                entity.velocity = Vector(0, -1, 0)
+                            }
                         } else {
                             player.inventory.addItem(item)
                         }
