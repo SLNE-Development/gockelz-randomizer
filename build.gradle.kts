@@ -10,6 +10,7 @@ surfPaperPluginApi {
     mainClass("dev.slne.gockelz.RandomizerPlugin")
     generateLibraryLoader(false)
     authors.add("Ammo")
+    foliaSupported(true)
 
     runServer {
         withSurfApiBukkit()
