@@ -2,6 +2,7 @@ package dev.slne.gockelz.listener
 
 import dev.slne.gockelz.MapManager
 import dev.slne.gockelz.RandomizerManager
+import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import dev.slne.surf.surfapi.core.api.messages.adventure.sendText
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -14,6 +15,16 @@ object OnlineListener : Listener {
     @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent) {
         val player = event.player
+        val spawnpoint = MapManager.getPlayerSpawnLocation(player)
+        
+        if (spawnpoint == null && RandomizerManager.isRunning()) {
+            player.kick(buildText {
+                error("Das Spiel läuft bereits. Du kannst erst wieder beitreten, wenn das Spiel vorbei ist.")
+            })
+
+            return
+        }
+
         val (hadSpawn, location) = MapManager.prepareSpawnpoint(player)
 
         if (!hadSpawn) {
