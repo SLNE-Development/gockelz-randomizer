@@ -2,7 +2,6 @@ package dev.slne.gockelz.listener
 
 import dev.slne.gockelz.MapManager
 import dev.slne.gockelz.RandomizerManager
-import dev.slne.gockelz.utils.PermissionRegistry
 import dev.slne.surf.surfapi.core.api.messages.adventure.sendText
 import org.bukkit.entity.Player
 import org.bukkit.event.Cancellable
@@ -17,7 +16,7 @@ object BlockListener : Listener {
     @EventHandler
     fun onBlockPlace(event: BlockPlaceEvent) {
         val player = event.player
-
+        
         checkGameIsRunning(player, event) {
             checkAndCancelAboveSpawnpoint(event) {
                 checkInOwnLine(event, player, event) {
@@ -35,15 +34,10 @@ object BlockListener : Listener {
     fun onBlockBreak(event: BlockBreakEvent) {
         val player = event.player
 
-        if (!player.hasPermission(PermissionRegistry.COMMAND_BASE)) {
-            player.sendText {
-                appendPrefix()
+        checkGameIsRunning(player, event) {
+            checkInOwnLine(event, player, event) {
 
-                error("Du hast keine Berechtigung, Blöcke abzubauen!")
             }
-
-            event.isCancelled = true
-            return
         }
     }
 
