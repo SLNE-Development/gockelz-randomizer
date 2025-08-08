@@ -108,12 +108,21 @@ object BlockListener : Listener {
         cancellable: Cancellable,
         next: () -> Unit
     ) {
-        val spawnPoint = player.respawnLocation ?: return
+        val spawnPoint = MapManager.getPlayerSpawnLocation(player) ?: run {
+            player.sendText {
+                appendPrefix()
 
-        val blockX = event.block.x
-        val spawnX = spawnPoint.blockX
+                error("Es konnte kein Spawnpunkt für dich gefunden werden. Bitte kontaktiere einen Administrator.")
+            }
 
-        if (blockX != spawnX) {
+            cancellable.isCancelled = true
+            return
+        }
+
+        val blockZ = event.block.z
+        val spawnZ = spawnPoint.blockZ
+
+        if (blockZ != spawnZ) {
             cancellable.isCancelled = true
 
             player.sendText {
@@ -130,7 +139,16 @@ object BlockListener : Listener {
 
     private fun checkAndCancelAboveSpawnpoint(event: BlockPlaceEvent, next: () -> Unit) {
         val player = event.player
-        val spawnPoint = player.respawnLocation ?: return
+        val spawnPoint = MapManager.getPlayerSpawnLocation(player) ?: run {
+            player.sendText {
+                appendPrefix()
+
+                error("Es konnte kein Spawnpunkt für dich gefunden werden. Bitte kontaktiere einen Administrator.")
+            }
+
+            event.isCancelled = true
+            return
+        }
 
         val blockX = event.blockPlaced.x
         val blockZ = event.blockPlaced.z

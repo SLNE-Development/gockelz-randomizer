@@ -18,7 +18,7 @@ object OnlineListener : Listener {
 
         if (!hadSpawn) {
             val spawnLocation = location.clone().add(0.5, 2.0, 0.5)
-            spawnLocation.yaw = 90f
+            spawnLocation.yaw = -90f
 
             player.teleportAsync(spawnLocation)
         }

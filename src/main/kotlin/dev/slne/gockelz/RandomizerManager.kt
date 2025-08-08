@@ -152,9 +152,11 @@ object RandomizerManager {
     fun addLockedPlayer(player: Player) = lockedPlayers.put(player.uniqueId, ZonedDateTime.now())
 
     var randomizerTaskSeconds = 0
+    var secondsTask: Job? = null
     var randomizerTask: Job? = null
+    var lockTask: Job? = null
 
-    fun start(
+    suspend fun start(
         players: Collection<Player>,
         timeout: Int,
         timeBetweenRandoms: Int,
@@ -162,24 +164,23 @@ object RandomizerManager {
         delayToFirstRandom: Int?,
         spawnAtBedrock: Boolean = false
     ) {
-        this.lockedPlayers.clear()
-        this._players.clear()
-        this._players.addAll(players.map { it.uniqueId })
-
         if (randomizerTask != null) error("Randomizer task is already running!")
 
         randomizerTaskSeconds = timeout
 
-        randomizerTask = plugin.launch {
-            if (delayToFirstRandom != null) {
-                delay(delayToFirstRandom.seconds)
-            }
+        this.lockedPlayers.clear()
+        this._players.clear()
+        this._players.addAll(players.map { it.uniqueId })
 
-            notifyStart()
+        notifyStart()
 
+        if (delayToFirstRandom != null) {
+            delay(delayToFirstRandom.seconds)
+        }
+
+        lockTask = plugin.launch {
             while (isActive && randomizerTaskSeconds > 0) {
                 val now = ZonedDateTime.now()
-                notifyIfApplicable(randomizerTaskSeconds)
 
                 players.forEach { player ->
                     if (!player.isOnline) {
@@ -213,8 +214,45 @@ object RandomizerManager {
                                 )
                                 info(" gesperrt, weil du gestorben bist und erhältst somit kein Item.")
                             }
+
                             return@forEach
                         }
+                    }
+                }
+
+                delay(1.seconds)
+            }
+        }
+
+        secondsTask = plugin.launch {
+            while (isActive && randomizerTaskSeconds > 0) {
+                notifyIfApplicable(randomizerTaskSeconds)
+
+                players.forEach { player ->
+                    if (!player.isOnline) {
+                        _players.remove(player.uniqueId)
+                        return@forEach
+                    }
+                }
+
+                randomizerTaskSeconds--
+
+                delay(1.seconds)
+            }
+
+            stop()
+        }
+
+        randomizerTask = plugin.launch {
+            while (isActive && randomizerTaskSeconds > 0) {
+                players.forEach { player ->
+                    if (!player.isOnline) {
+                        _players.remove(player.uniqueId)
+                        return@forEach
+                    }
+
+                    if (lockedPlayers[player.uniqueId] != null) {
+                        return@forEach
                     }
 
                     withContext(plugin.entityDispatcher(player)) {
@@ -240,16 +278,21 @@ object RandomizerManager {
                     }
                 }
 
-                randomizerTaskSeconds--
                 delay(timeBetweenRandoms.seconds)
             }
-
-            stop()
         }
     }
 
     fun stop() {
-        if (randomizerTask == null) error("Randomizer task is not running!")
+        if (randomizerTask == null || lockTask == null || secondsTask == null) {
+            error("Randomizer task is not running!")
+        }
+
+        secondsTask?.cancel()
+        secondsTask = null
+
+        lockTask?.cancel()
+        lockTask = null
 
         randomizerTask?.cancel()
         randomizerTask = null
