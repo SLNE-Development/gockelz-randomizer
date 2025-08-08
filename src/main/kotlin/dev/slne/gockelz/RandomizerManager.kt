@@ -19,6 +19,7 @@ import org.bukkit.Sound
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.util.Vector
+import java.time.ZonedDateTime
 import java.util.*
 import kotlin.random.asKotlinRandom
 import kotlin.time.Duration.Companion.milliseconds
@@ -146,6 +147,10 @@ object RandomizerManager {
     private val _players = mutableObjectSetOf<UUID>()
     val players = _players.freeze()
 
+    private val lockedPlayers = mutableObject2ObjectMapOf<UUID, ZonedDateTime>()
+
+    fun addLockedPlayer(player: Player) = lockedPlayers.put(player.uniqueId, ZonedDateTime.now())
+
     var randomizerTaskSeconds = 0
     var randomizerTask: Job? = null
 
@@ -153,9 +158,11 @@ object RandomizerManager {
         players: Collection<Player>,
         timeout: Int,
         timeBetweenRandoms: Int,
+        lockPlayersFor: Int,
         delayToFirstRandom: Int?,
         spawnAtBedrock: Boolean = false
     ) {
+        this.lockedPlayers.clear()
         this._players.clear()
         this._players.addAll(players.map { it.uniqueId })
 
@@ -171,12 +178,23 @@ object RandomizerManager {
             notifyStart()
 
             while (isActive && randomizerTaskSeconds > 0) {
+                val now = ZonedDateTime.now()
                 notifyIfApplicable(randomizerTaskSeconds)
 
                 players.forEach { player ->
                     if (!player.isOnline) {
                         _players.remove(player.uniqueId)
                         return@forEach
+                    }
+
+                    val lockedAt = lockedPlayers[player.uniqueId]
+
+                    if (lockedAt != null) {
+                        if (now.isAfter(lockedAt.plusSeconds(lockPlayersFor.toLong()))) {
+                            lockedPlayers.remove(player.uniqueId)
+                        } else {
+                            return@forEach
+                        }
                     }
 
                     withContext(plugin.entityDispatcher(player)) {
@@ -218,6 +236,7 @@ object RandomizerManager {
 
         notifyEnd {
             _players.clear()
+            lockedPlayers.clear()
         }
     }
 

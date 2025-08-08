@@ -19,6 +19,7 @@ fun CommandAPICommand.randomizerStartCommand() = subcommand("start") {
     entitySelectorArgumentManyPlayers("players")
     integerArgument("timeout", min = 1)
     integerArgument("timeBetweenRandoms", min = 1)
+    integerArgument("lockPlayersFor", min = 1)
     integerArgument("delayToFirstRandom", min = 0, optional = true)
     booleanArgument("spawnAtBedrock", optional = true)
 
@@ -26,6 +27,7 @@ fun CommandAPICommand.randomizerStartCommand() = subcommand("start") {
         val players: List<Player> by arguments
         val timeout: Int by arguments
         val timeBetweenRandoms: Int by arguments
+        val lockPlayersFor: Int by arguments
         val delayToFirstRandom: Int? by arguments
         val spawnAtBedrock: Boolean by arguments
 
@@ -52,6 +54,7 @@ fun CommandAPICommand.randomizerStartCommand() = subcommand("start") {
                 players,
                 timeout,
                 timeBetweenRandoms,
+                lockPlayersFor,
                 delayToFirstRandom,
                 spawnAtBedrock
             )
