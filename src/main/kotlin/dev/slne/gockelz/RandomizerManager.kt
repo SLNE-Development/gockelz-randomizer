@@ -193,6 +193,26 @@ object RandomizerManager {
                         if (now.isAfter(lockedAt.plusSeconds(lockPlayersFor.toLong()))) {
                             lockedPlayers.remove(player.uniqueId)
                         } else {
+                            val remainingSeconds = lockedAt.plusSeconds(lockPlayersFor.toLong())
+                                .toEpochSecond() - now.toEpochSecond()
+
+                            player.sendText {
+                                appendPrefix()
+
+                                info("Du bist noch für ")
+                                append(
+                                    CommonComponents.formatTime(
+                                        remainingSeconds.seconds,
+                                        showSeconds = true,
+                                        shortForms = true,
+                                        separator = buildText {
+                                            variableValue(":")
+                                        },
+                                        timeColor = Colors.VARIABLE_VALUE
+                                    )
+                                )
+                                info(" gesperrt, weil du gestorben bist und erhältst somit kein Item.")
+                            }
                             return@forEach
                         }
                     }
