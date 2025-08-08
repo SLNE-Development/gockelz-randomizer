@@ -13,7 +13,7 @@ object MapManager {
     private const val DISTANCE_BETWEEN_SPAWNS = 5
     private val lastSpawnZKey = NamespacedKey("gockelz", "last_spawn_z")
 
-    private const val WORLD_NAME = "world"
+    private const val WORLD_NAME = "gockelz"
 
     private val randomizerWorld get() = server.getWorld(WORLD_NAME)
 
