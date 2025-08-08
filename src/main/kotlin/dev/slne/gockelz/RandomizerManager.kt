@@ -9,10 +9,7 @@ import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import dev.slne.surf.surfapi.core.api.messages.adventure.playSound
 import dev.slne.surf.surfapi.core.api.messages.adventure.sendText
 import dev.slne.surf.surfapi.core.api.messages.adventure.showTitle
-import dev.slne.surf.surfapi.core.api.util.freeze
-import dev.slne.surf.surfapi.core.api.util.mutableObjectSetOf
-import dev.slne.surf.surfapi.core.api.util.random
-import dev.slne.surf.surfapi.core.api.util.toObjectSet
+import dev.slne.surf.surfapi.core.api.util.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -30,8 +27,15 @@ import kotlin.time.Duration.Companion.seconds
 
 object RandomizerManager {
 
+    private val invalidItems = objectSetOf(
+        Material.ENDER_DRAGON_SPAWN_EGG,
+        Material.WITHER_SPAWN_EGG,
+    )
+
     private val items = Material.entries.filter {
         it != Material.AIR && it.isItem
+    }.filterNot {
+        it in invalidItems
     }.map { ItemStack(it) }.toObjectSet()
 
     private val notifyAt = mutableObjectSetOf(
