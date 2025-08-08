@@ -3,6 +3,7 @@ package dev.slne.gockelz.listener
 import dev.slne.gockelz.MapManager
 import dev.slne.gockelz.RandomizerManager
 import dev.slne.surf.surfapi.core.api.messages.adventure.sendText
+import dev.slne.surf.surfapi.core.api.util.mutableObjectSetOf
 import org.bukkit.entity.Player
 import org.bukkit.event.Cancellable
 import org.bukkit.event.EventHandler
@@ -16,14 +17,12 @@ object BlockListener : Listener {
     @EventHandler
     fun onBlockPlace(event: BlockPlaceEvent) {
         val player = event.player
-        
+
         checkGameIsRunning(player, event) {
             checkAndCancelAboveSpawnpoint(event) {
                 checkInOwnLine(event, player, event) {
-                    checkOnCorrectY(event) {
-                        checkPlacingInPositiveX(event) {
+                    checkPlacingInPositiveX(event) {
 
-                        }
                     }
                 }
             }
@@ -75,27 +74,6 @@ object BlockListener : Listener {
         next()
     }
 
-    private fun checkOnCorrectY(event: BlockPlaceEvent, next: () -> Unit) {
-        val player = event.player
-        val blockY = event.blockPlaced.y
-
-        if (blockY != MapManager.RANDOMIZER_Y) {
-            event.isCancelled = true
-
-            player.sendText {
-                appendPrefix()
-
-                error("Du kannst Blöcke nur auf Höhe ")
-                variableValue(MapManager.RANDOMIZER_Y)
-                error(" platzieren!")
-            }
-
-            return
-        }
-
-        next()
-    }
-
     private fun checkInOwnLine(
         event: BlockEvent,
         player: Player,
@@ -115,8 +93,13 @@ object BlockListener : Listener {
 
         val blockZ = event.block.z
         val spawnZ = spawnPoint.blockZ
+        val allowedRadius = 1
+        val allowed = mutableObjectSetOf<Int>()
+        for (i in -allowedRadius..allowedRadius) {
+            allowed.add(spawnZ + i)
+        }
 
-        if (blockZ != spawnZ) {
+        if (blockZ !in allowed) {
             cancellable.isCancelled = true
 
             player.sendText {
