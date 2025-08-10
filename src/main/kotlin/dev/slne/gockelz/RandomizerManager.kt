@@ -31,6 +31,7 @@ object RandomizerManager {
     private val invalidItems = objectSetOf(
         Material.ENDER_DRAGON_SPAWN_EGG,
         Material.WITHER_SPAWN_EGG,
+        Material.WARDEN_SPAWN_EGG
     )
 
     private val items = Material.entries.filter {
