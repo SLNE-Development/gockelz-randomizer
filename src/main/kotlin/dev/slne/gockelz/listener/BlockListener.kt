@@ -14,6 +14,8 @@ import org.bukkit.event.block.BlockPlaceEvent
 
 object BlockListener : Listener {
 
+    private const val ALLOWED_RADIUS = 5
+
     @EventHandler
     fun onBlockPlace(event: BlockPlaceEvent) {
         val player = event.player
@@ -93,7 +95,7 @@ object BlockListener : Listener {
 
         val blockZ = event.block.z
         val spawnZ = spawnPoint.blockZ
-        val allowedRadius = 1
+        val allowedRadius = ALLOWED_RADIUS
         val allowed = mutableObjectSetOf<Int>()
         for (i in -allowedRadius..allowedRadius) {
             allowed.add(spawnZ + i)

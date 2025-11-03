@@ -1,6 +1,5 @@
 package dev.slne.gockelz
 
-import com.destroystokyo.paper.MaterialTags
 import com.github.shynixn.mccoroutine.folia.entityDispatcher
 import com.github.shynixn.mccoroutine.folia.launch
 import dev.slne.surf.surfapi.bukkit.api.extensions.server
