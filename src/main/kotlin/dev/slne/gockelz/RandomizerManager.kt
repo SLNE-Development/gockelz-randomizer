@@ -1,5 +1,6 @@
 package dev.slne.gockelz
 
+import com.destroystokyo.paper.MaterialTags
 import com.github.shynixn.mccoroutine.folia.entityDispatcher
 import com.github.shynixn.mccoroutine.folia.launch
 import dev.slne.surf.surfapi.bukkit.api.extensions.server
@@ -29,9 +30,35 @@ import kotlin.time.Duration.Companion.seconds
 object RandomizerManager {
 
     private val invalidItems = objectSetOf(
+
+        // Spawn Eggs
         Material.ENDER_DRAGON_SPAWN_EGG,
         Material.WITHER_SPAWN_EGG,
-        Material.WARDEN_SPAWN_EGG
+        Material.WARDEN_SPAWN_EGG,
+        Material.BLAZE_SPAWN_EGG,
+        Material.GHAST_SPAWN_EGG,
+        Material.HAPPY_GHAST_SPAWN_EGG,
+
+        // Creative only items
+        Material.COMMAND_BLOCK,
+        Material.COMMAND_BLOCK_MINECART,
+        Material.CHAIN_COMMAND_BLOCK,
+        Material.REPEATING_COMMAND_BLOCK,
+        Material.BARRIER,
+        Material.STRUCTURE_VOID,
+        Material.STRUCTURE_BLOCK,
+        Material.JIGSAW,
+        Material.END_PORTAL_FRAME,
+        Material.DRAGON_EGG,
+        Material.SPAWNER,
+        Material.DEBUG_STICK,
+        Material.BEDROCK,
+        Material.LIGHT,
+        Material.TEST_BLOCK,
+        Material.TEST_INSTANCE_BLOCK,
+        Material.REINFORCED_DEEPSLATE,
+        Material.VAULT,
+        Material.TRIAL_SPAWNER
     )
 
     private val items = Material.entries.filter {
