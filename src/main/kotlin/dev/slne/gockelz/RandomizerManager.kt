@@ -117,7 +117,7 @@ object RandomizerManager {
         }
     }
 
-    private fun notifyStart() = plugin.launch {
+    private fun notifyAndPreparePlayer() = plugin.launch {
         players.mapNotNull { server.getPlayer(it) }.forEach { player ->
             withContext(plugin.entityDispatcher(player)) {
                 player.showTitle {
@@ -140,6 +140,7 @@ object RandomizerManager {
                     pitch(.5f)
                 }
 
+                MapManager.getPlayerSpawnLocation(player)?.let { player.teleportAsync(it.add(0.5, 1.0, 0.5).setRotation(-90.0f, 0.0f)) }
                 player.health = 20.0
                 player.foodLevel = 20
             }
@@ -202,7 +203,7 @@ object RandomizerManager {
         this._players.clear()
         this._players.addAll(players.map { it.uniqueId })
 
-        notifyStart()
+        notifyAndPreparePlayer()
 
         if (delayToFirstRandom != null) {
             delay(delayToFirstRandom.seconds)

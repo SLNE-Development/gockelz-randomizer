@@ -59,7 +59,7 @@ object MapManager {
         val block = world.getBlockAt(0, RANDOMIZER_Y, spawnZ)
         block.type = Material.BEDROCK
 
-        val respawn = block.location.clone().add(0.5, 1.0, 0.5)
+        val respawn = block.location.clone().add(0.5, 1.0, 0.5).setRotation(-90.0f, 0.0f)
         player.respawnLocation = respawn
         setSpawnLocation(player, respawn)
 

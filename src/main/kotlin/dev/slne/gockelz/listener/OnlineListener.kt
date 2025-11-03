@@ -56,8 +56,7 @@ object OnlineListener : Listener {
             return
         }
 
-        val spawnLocation = respawn.clone().add(0.5, 2.0, 0.5)
-        spawnLocation.yaw = 90f
+        val spawnLocation = respawn.clone().add(0.5, 2.0, 0.5).setRotation(-90.0f, 0.0f)
 
         player.teleportAsync(spawnLocation)
     }
