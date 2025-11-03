@@ -6,6 +6,7 @@ import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import dev.slne.surf.surfapi.core.api.messages.adventure.sendText
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.entity.FoodLevelChangeEvent
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerRespawnEvent
@@ -59,6 +60,13 @@ object OnlineListener : Listener {
         spawnLocation.yaw = 90f
 
         player.teleportAsync(spawnLocation)
+    }
+
+    @EventHandler
+    fun onFoodLevelChange(event: FoodLevelChangeEvent) {
+        if (RandomizerManager.isRunning()) {
+            event.isCancelled = true
+        }
     }
 
 }

@@ -139,6 +139,9 @@ object RandomizerManager {
                     volume(.5f)
                     pitch(.5f)
                 }
+
+                player.health = 20.0
+                player.foodLevel = 20
             }
         }
     }
