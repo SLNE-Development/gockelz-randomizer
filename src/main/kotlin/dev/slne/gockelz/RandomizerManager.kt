@@ -3,9 +3,6 @@ package dev.slne.gockelz
 import com.github.shynixn.mccoroutine.folia.entityDispatcher
 import com.github.shynixn.mccoroutine.folia.launch
 import dev.slne.surf.surfapi.bukkit.api.extensions.server
-import dev.slne.surf.surfapi.core.api.messages.Colors
-import dev.slne.surf.surfapi.core.api.messages.CommonComponents
-import dev.slne.surf.surfapi.core.api.messages.adventure.buildText
 import dev.slne.surf.surfapi.core.api.messages.adventure.playSound
 import dev.slne.surf.surfapi.core.api.messages.adventure.sendText
 import dev.slne.surf.surfapi.core.api.messages.adventure.showTitle
@@ -94,17 +91,7 @@ object RandomizerManager {
                         appendPrefix()
 
                         info("Der Randomizer endet in ")
-                        append(
-                            CommonComponents.formatTime(
-                                seconds.seconds,
-                                showSeconds = true,
-                                shortForms = true,
-                                separator = buildText {
-                                    variableValue(":")
-                                },
-                                timeColor = Colors.VARIABLE_VALUE
-                            ),
-                        )
+                        variableValue(seconds.seconds.toString())
                         info(".")
                     }
 
@@ -232,17 +219,7 @@ object RandomizerManager {
                                 appendPrefix()
 
                                 info("Du bist noch für ")
-                                append(
-                                    CommonComponents.formatTime(
-                                        remainingSeconds.seconds,
-                                        showSeconds = true,
-                                        shortForms = true,
-                                        separator = buildText {
-                                            variableValue(":")
-                                        },
-                                        timeColor = Colors.VARIABLE_VALUE
-                                    )
-                                )
+                                variableValue(remainingSeconds.seconds.toString())
                                 info(" gesperrt, weil du gestorben bist und erhältst somit kein Item.")
                             }
 
