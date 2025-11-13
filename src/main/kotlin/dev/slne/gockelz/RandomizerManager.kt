@@ -54,7 +54,10 @@ object RandomizerManager {
         Material.TEST_INSTANCE_BLOCK,
         Material.REINFORCED_DEEPSLATE,
         Material.VAULT,
-        Material.TRIAL_SPAWNER
+        Material.TRIAL_SPAWNER,
+
+        // Other
+        Material.ELYTRA
     )
 
     private val items = Material.entries.filter {
