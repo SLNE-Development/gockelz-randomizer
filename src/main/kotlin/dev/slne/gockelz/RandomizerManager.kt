@@ -283,6 +283,7 @@ object RandomizerManager {
                                 item
                             ) { entity ->
                                 entity.velocity = Vector(0, -1, 0)
+                                entity.owner = player.uniqueId
                             }
                         } else {
                             player.inventory.addItem(item)
