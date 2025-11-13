@@ -34,6 +34,7 @@ object RandomizerManager {
         Material.BLAZE_SPAWN_EGG,
         Material.GHAST_SPAWN_EGG,
         Material.HAPPY_GHAST_SPAWN_EGG,
+        Material.SHULKER_SPAWN_EGG,
 
         // Creative only items
         Material.COMMAND_BLOCK,
