@@ -62,11 +62,13 @@ object RandomizerManager {
         Material.ELYTRA
     )
 
-    private val items = Material.entries.filter {
-        it != Material.AIR && it.isItem
-    }.filterNot {
-        it in invalidItems
-    }.map { ItemStack(it) }.toObjectSet()
+    private fun isInvalid(material: Material): Boolean =
+        material == Material.AIR || !material.isItem || material in invalidItems
+
+    private val items = Material.entries
+        .filterNot(::isInvalid)
+        .map { ItemStack(it) }
+        .toObjectSet()
 
     private val notifyAt = mutableObjectSetOf(
         90.minutes,
@@ -271,7 +273,7 @@ object RandomizerManager {
                     }
 
                     withContext(plugin.entityDispatcher(player)) {
-                        val item = items.random(random.asKotlinRandom())
+                        val item = randomValidItem()
 
                         if (spawnAtBedrock) {
                             val spawnLocation = MapManager.getPlayerSpawnLocation(player)
@@ -320,5 +322,23 @@ object RandomizerManager {
     }
 
     fun isRunning() = randomizerTask != null && randomizerTask?.isActive == true
+
+    private fun randomValidItem(): ItemStack {
+        var lastInvalid: Material? = null
+
+        repeat(10) {
+            val candidate = items.random(random.asKotlinRandom())
+            if (!isInvalid(candidate.type)) {
+                return candidate
+            } else {
+                lastInvalid = candidate.type
+            }
+        }
+
+        lastInvalid?.let {
+            plugin.logger.warning("[Randomizer] Found invalid item: $it")
+        }
+        return ItemStack(Material.STONE)
+    }
 
 }
