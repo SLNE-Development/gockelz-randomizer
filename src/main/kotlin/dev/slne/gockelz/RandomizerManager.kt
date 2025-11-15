@@ -2,6 +2,7 @@ package dev.slne.gockelz
 
 import com.github.shynixn.mccoroutine.folia.entityDispatcher
 import com.github.shynixn.mccoroutine.folia.launch
+import dev.slne.gockelz.distance.DistanceService
 import dev.slne.surf.surfapi.bukkit.api.extensions.server
 import dev.slne.surf.surfapi.core.api.messages.adventure.playSound
 import dev.slne.surf.surfapi.core.api.messages.adventure.sendText
@@ -187,6 +188,8 @@ object RandomizerManager {
         spawnAtBedrock: Boolean = false
     ) {
         if (randomizerTask != null) error("Randomizer task is already running!")
+
+        DistanceService.resetForNewGame()
 
         randomizerTaskSeconds = timeout
 

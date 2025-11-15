@@ -1,6 +1,7 @@
 package dev.slne.gockelz.distance
 
 import com.github.shynixn.mccoroutine.folia.launch
+import dev.slne.gockelz.RandomizerManager
 import dev.slne.gockelz.plugin
 import dev.slne.surf.surfapi.bukkit.api.extensions.server
 import org.bukkit.Location
@@ -13,11 +14,6 @@ import kotlin.concurrent.write
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 
-/**
- * Caches the max reached distance per player along +X relative to spawn
- *   current = max(0, x - spawnX)
- *   cachedMax = max(cachedMax, current)
- */
 object DistanceService {
     private const val UPDATE_PERIOD_MS = 1000L
 
@@ -31,7 +27,9 @@ object DistanceService {
         if (job != null) return
         job = plugin.launch {
             while (true) {
-                try { recomputeAll() } catch (t: Throwable) {
+                try {
+                    recomputeAll()
+                } catch (t: Throwable) {
                     plugin.logger.warning("[DistanceService] Recompute-Fehler: ${t.message}")
                 }
                 delay(UPDATE_PERIOD_MS)
@@ -40,7 +38,12 @@ object DistanceService {
     }
 
     fun stop() {
-        job?.cancel(); job = null
+        job?.cancel()
+        job = null
+        resetForNewGame()
+    }
+
+    fun resetForNewGame() {
         lock.write {
             maxByPlayer.clear()
             sortedByMax = emptyList()
@@ -49,13 +52,20 @@ object DistanceService {
     }
 
     private fun recomputeAll() {
+        // Check if game is running
+        if (!RandomizerManager.isRunning()) {
+            return
+        }
+
         val online = server.onlinePlayers.toList()
         if (online.isEmpty()) return
 
         // Update cached max if current progress is greater
         for (p in online) {
             val current = forwardProgressX(p)
-            maxByPlayer.compute(p.uniqueId) { _, prev -> kotlin.math.max(prev ?: 0L, current) }
+            maxByPlayer.compute(p.uniqueId) { _, prev ->
+                kotlin.math.max(prev ?: 0L, current)
+            }
         }
 
         // Ranking by cachedMax
@@ -67,7 +77,9 @@ object DistanceService {
             sortedByMax = sorted
             rankByPlayer.clear()
             var i = 0
-            for ((uuid, _) in sortedByMax) rankByPlayer[uuid] = i++
+            for ((uuid, _) in sortedByMax) {
+                rankByPlayer[uuid] = i++
+            }
         }
     }
 
@@ -81,17 +93,22 @@ object DistanceService {
     private fun spawnLocationOf(p: Player): Location? =
         p.respawnLocation ?: p.bedSpawnLocation
 
-    fun placeOfPlayer(uuid: UUID): Int = lock.read { rankByPlayer[uuid] ?: Int.MAX_VALUE }
+    fun placeOfPlayer(uuid: UUID): Int =
+        lock.read { rankByPlayer[uuid] ?: Int.MAX_VALUE }
 
     fun playerAtPlace(placeOneBased: Long): UUID? = lock.read {
         val idx = (placeOneBased - 1).toInt()
         if (idx in sortedByMax.indices) sortedByMax[idx].first else null
     }
 
-    fun distanceBlocks(uuid: UUID): Long = lock.read { maxByPlayer[uuid] } ?: 0L
+    fun distanceBlocks(uuid: UUID): Long =
+        lock.read { maxByPlayer[uuid] } ?: 0L
 
     fun distanceBlocksAtPlace(placeOneBased: Long): Long? = lock.read {
         val idx = (placeOneBased - 1).toInt()
         if (idx in sortedByMax.indices) sortedByMax[idx].second else null
     }
+
+    fun hasAnyData(): Boolean =
+        lock.read { sortedByMax.isNotEmpty() }
 }

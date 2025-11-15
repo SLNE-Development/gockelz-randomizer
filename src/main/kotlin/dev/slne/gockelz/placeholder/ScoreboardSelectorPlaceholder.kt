@@ -1,6 +1,5 @@
 package dev.slne.gockelz.placeholder
 
-import dev.slne.gockelz.RandomizerManager
 import dev.slne.gockelz.distance.DistanceService
 import dev.slne.surf.surfapi.bukkit.api.hook.papi.expansion.PapiPlaceholder
 import org.bukkit.OfflinePlayer
@@ -11,7 +10,7 @@ import org.bukkit.OfflinePlayer
 object ScoreboardSelectorPlaceholder : PapiPlaceholder("scoreboard-selector") {
     override fun parse(player: OfflinePlayer, args: List<String>): String? {
 
-        if (!RandomizerManager.isRunning()) {
+        if (!DistanceService.hasAnyData()) {
             return "not-running"
         }
 
