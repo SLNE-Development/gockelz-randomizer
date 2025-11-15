@@ -1,5 +1,6 @@
 package dev.slne.gockelz.distance
 
+import com.github.shynixn.mccoroutine.folia.entityDispatcher
 import com.github.shynixn.mccoroutine.folia.launch
 import dev.slne.gockelz.RandomizerManager
 import dev.slne.gockelz.plugin
@@ -13,6 +14,7 @@ import kotlin.concurrent.read
 import kotlin.concurrent.write
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 object DistanceService {
     private const val UPDATE_PERIOD_MS = 1000L
@@ -30,7 +32,7 @@ object DistanceService {
                 try {
                     recomputeAll()
                 } catch (t: Throwable) {
-                    plugin.logger.warning("[DistanceService] Recompute-Fehler: ${t.message}")
+                    plugin.logger.warning("[DistanceService] Recompute error: ${t.message}")
                 }
                 delay(UPDATE_PERIOD_MS)
             }
@@ -51,29 +53,39 @@ object DistanceService {
         }
     }
 
-    private fun recomputeAll() {
-        // Check if game is running
-        if (!RandomizerManager.isRunning()) {
-            return
-        }
+    /**
+     * Runs in a coroutine thread, but all world access is done
+     * on the corresponding entity dispatcher for each player.
+     */
+    private suspend fun recomputeAll() {
+        // Only collect progress while the game is running
+        if (!RandomizerManager.isRunning()) return
 
         val online = server.onlinePlayers.toList()
         if (online.isEmpty()) return
 
-        // Update cached max if current progress is greater
-        for (p in online) {
-            val current = forwardProgressX(p)
-            maxByPlayer.compute(p.uniqueId) { _, prev ->
-                kotlin.math.max(prev ?: 0L, current)
+        // First compute progress per player on their entity thread
+        val localProgress = HashMap<UUID, Long>(online.size)
+
+        for (player in online) {
+            val progress = withContext(plugin.entityDispatcher(player)) {
+                forwardProgressX(player)
             }
+            localProgress[player.uniqueId] = progress
         }
 
-        // Ranking by cachedMax
-        val sorted = maxByPlayer.entries
-            .sortedByDescending { it.value }
-            .map { it.key to it.value }
-
+        // Then apply results to shared state under a write lock
         lock.write {
+            for ((uuid, progress) in localProgress) {
+                maxByPlayer.compute(uuid) { _, prev ->
+                    kotlin.math.max(prev ?: 0L, progress)
+                }
+            }
+
+            val sorted = maxByPlayer.entries
+                .sortedByDescending { it.value }
+                .map { it.key to it.value }
+
             sortedByMax = sorted
             rankByPlayer.clear()
             var i = 0
@@ -85,8 +97,17 @@ object DistanceService {
 
     // forward progress on track = max(0, x - spawnX)
     private fun forwardProgressX(p: Player): Long {
-        val spawn = spawnLocationOf(p) ?: p.world.spawnLocation
-        val dxPlus = p.location.x - spawn.x
+        val loc = p.location
+        val world = loc.world
+
+        // Check if there is any block in this column (x, z).
+        val highest = world.getHighestBlockAt(loc.blockX, loc.blockZ)
+        if (highest.type.isAir) {
+            return 0L
+        }
+
+        val spawn = spawnLocationOf(p) ?: world.spawnLocation
+        val dxPlus = loc.x - spawn.x
         return dxPlus.toLong().coerceAtLeast(0L)
     }
 
